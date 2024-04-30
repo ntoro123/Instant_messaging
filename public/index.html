@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #000;
+                color: #fff;
+                font-family: 'Comic Sans MS', cursive, sans-serif;
+            }
+
+            #messages {
+                list-style-type: none;
+                padding: 0;
+                height: 80vh;
+                overflow-y: auto;
+                border: 1px solid #fff;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+    
+            #messages .message {
+                max-width: 60%;
+            }
+
+            #messages li {
+                margin-bottom: 10px;
+                border-radius: 20px;
+                padding: 10px;
+                background-color: #0080ff;
+                color: #fff;
+                word-wrap: break-word;
+                max-width: 60%;
+            }
+
+            #messages li.me {
+                align-self: flex-end;
+                background-color: #0080ff;
+            }
+
+            #messages li.other {
+                align-self: flex-start;
+                background-color: #ff8000;
+            }
+
+            #input {
+                width: 100%;
+                padding: 10px;
+                margin-top: 10px;
+                box-sizing: border-box;
+                border-radius: 20px;
+            }
+
+            #button {
+                padding: 10px;
+                margin-top: 10px;
+                width: 100%;
+                background-color: #0080ff;
+                color: #fff;
+                border: none;
+                border-radius: 20px;
+            }
+
+            #button:hover {
+                background-color: #0059b3;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="chat-container">
+            <ul id="messages"></ul>
+            <div id="input-container">
+                <input id="input" type="text">
+                <button id="button">Send</button>
+            </div>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            var socket = io();
+
+            // Ask the user for their username
+            var username = prompt('Please enter your username');
+        
+            socket.on('connect', function() {
+                // Emit a 'new user' event with the username when the client connects
+                socket.emit('new user', username);
+            });
+        
+            document.getElementById('button').addEventListener('click', function() {
+                const message = document.getElementById('input').value;
+                console.log('Emitting message:', message); // Move this line inside the event listener
+                socket.emit('message', { text: message }); // Send the message as an object with a `text` property
+                document.getElementById('input').value = '';
+            });
+        
+            socket.on('message', function(message) {
+                const li = document.createElement('li');
+                const div = document.createElement('div');
+                div.textContent = message.user + ' (' + message.time + '): ' + message.text;
+                div.style.color = message.color;
+                div.className = 'message-text';
+                li.appendChild(div);
+                li.className = message.user === username ? 'me' : 'other';
+                document.getElementById('messages').append(li);
+            });
+        });
+        </script>
+    </body>
+</html>
